@@ -173,6 +173,7 @@ class AgenteAleatorio(entornos_o.Agente):
         return choice(self.acciones)
 
 def test():
+
     print("Prueba del entorno NueveCuartos con Agente Aleatorio")
     entornos_o.simulador(NueveCuartos(),
                          AgenteAleatorio(['ir_Derecha', 'ir_Izquierda', 'subir', 'bajar', 'limpiar', 'nada']),
@@ -182,6 +183,14 @@ def test():
     entornos_o.simulador(NueveCuartos(),
                             AgenteReactivoModeloNueveCuartos(),
                             200)
+
+    """
+    No hay comparacion entre este agente y el alateoreo, el alateoreo tiene un costo de entre 300 a 400 o mas
+    en los primeros 200 pasos y ni si quiera cumple el objetivo de limpiar todos los cuartos, en cuanto
+    al agente reactivo con modelo este termina en el menor costo posible, que seria 31.
+    En este el programa sigue una ruta estilo serpiente, primero el primer piso, luego el segundo y por
+    ultimo el tercero.
+    """
 
 if __name__ == "__main__":
     test()
