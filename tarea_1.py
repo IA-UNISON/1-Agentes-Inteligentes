@@ -49,11 +49,11 @@ class NueveCuartos(entornos_o.Entorno):
             return robot == 6 or robot == 3
 
         if accion == "ir_Derecha":
-            # No puedes ir a la derecha si ya estás en el borde derecho
+            # No puedes ir a la derecha si ya estas en el borde derecho
             return robot not in [2, 5, 8]
 
         if accion == "ir_Izquierda":
-            # No puedes ir a la izquierda si ya estás en el borde izquierdo
+            # No puedes ir a la izquierda si ya estas en el borde izquierdo
             return robot not in [0, 3, 6]
 
             # "limpiar" y "nada" siempre son legales
@@ -172,6 +172,67 @@ class AgenteAleatorio(entornos_o.Agente):
     def programa(self, _):
         return choice(self.acciones)
 
+class NueveCuartosCiego(NueveCuartos):
+    """
+    Entorno igual al de 9 cuartos, pero el robot no puede ver el estado del suelo.
+    Solo sabe donde esta.
+    """
+    def percepcion(self):
+        """
+        Sobrescribe el metodo original.
+        Devuelve solo la ubicacion del robot.
+        """
+        return self.x[0]
+
+
+class AgenteReactivoModeloNueveCuartosCiego(AgenteReactivoModeloNueveCuartos):
+    """
+    Agente racional para entorno ciego.
+    Como no ve la suciedad, limpia basándose en su modelo interno:
+    'Si no recuerdo haber limpiado este cuarto, lo limpio y asumo que quedó bien'.
+    """
+
+    def programa(self, percepcion):
+        robot = percepcion
+
+        self.modelo[0] = robot
+
+        if all(cuarto == 'limpio' for cuarto in self.modelo[1:]):
+            return 'nada'
+
+        # B. Lógica de Limpieza a Ciegas
+        # Consulto mi memoria sobre el cuarto actual
+        estado_creido = self.modelo[robot + 1]
+
+        if estado_creido == 'sucio':
+            self.modelo[robot + 1] = 'limpio'
+            return 'limpiar'
+
+        # igual a la de nuevecuartos
+
+        if robot == 0 or robot == 1:
+            return 'ir_Derecha'
+        elif robot == 2:
+            return 'subir'
+
+        elif robot == 5:
+            if self.modelo[5] != 'limpio' or self.modelo[4] != 'limpio':
+                return 'ir_Izquierda'
+            else:
+                return 'subir'
+        elif robot == 4:
+            if self.modelo[4] != 'limpio':
+                return 'ir_Izquierda'
+            else:
+                return 'ir_Derecha'
+        elif robot == 3:
+            return 'ir_Derecha'
+
+        elif robot == 8 or robot == 7:
+            return 'ir_Izquierda'
+
+        return 'nada'
+
 def test():
 
     print("Prueba del entorno NueveCuartos con Agente Aleatorio")
@@ -190,6 +251,17 @@ def test():
     al agente reactivo con modelo este termina en el menor costo posible, que seria 31.
     En este el programa sigue una ruta estilo serpiente, primero el primer piso, luego el segundo y por
     ultimo el tercero.
+    """
+
+    print("Prueba del entorno NueveCuartosCiego con Agente Reactivo Modelo Ciego")
+    entornos_o.simulador(NueveCuartosCiego(),
+                         AgenteReactivoModeloNueveCuartosCiego(),
+                         200)
+
+    """
+    Esta es mas parecida al resultado de de AgenteReactivoModeloNueveCuartos, ya que hace lo mismo
+    con la diferencia de que este agente limpia aunque el cuarto ya este limpio, pero despues de
+    esto, lo guarda en su memoria y sigue avanzando.
     """
 
 if __name__ == "__main__":
