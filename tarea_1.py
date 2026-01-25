@@ -60,28 +60,35 @@ class NueveCuartos(entornos_o.Entorno):
         return True
 
     def transicion(self, accion):
-        if not self.acción_legal(accion):
-            raise ValueError("La acción no es legal para este estado")
 
         robot = self.x[0]
+
+        costo_accion = 0
         if accion == "limpiar":
-            self.costo += 1
+            costo_accion = 1
+        elif accion == "ir_Derecha" or accion == "ir_Izquierda":
+            costo_accion = 2
+        elif accion == "subir" or accion == "bajar":
+            costo_accion = 3
+
+        self.costo += costo_accion
+
+        if not self.accion_legal(accion):
+            return
+
+        if accion == "limpiar":
             self.x[robot + 1] = "limpio"
 
         elif accion == "ir_Derecha":
-            self.costo += 2
             self.x[0] += 1
 
         elif accion == "ir_Izquierda":
-            self.costo += 2
             self.x[0] -= 1
 
         elif accion == "subir":
-            self.costo += 3
             self.x[0] += 3
 
         elif accion == "bajar":
-            self.costo += 3
             self.x[0] -= 3
 
         """
@@ -96,6 +103,7 @@ class NueveCuartos(entornos_o.Entorno):
         izquierda y deracha: 2
         limpiar: 1
         nada: 0
+        En una accion ilegal el costo es el de la accion pero el robot no hace nada.
         """
 
     def percepcion(self):
@@ -105,7 +113,7 @@ class NueveCuartos(entornos_o.Entorno):
 
 class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
     """
-    Agente reactivo basado en modelo para el entorno de 9 cuartos.
+    Un Agente reactivo basado en modelo para el entorno de 9 cuartos.
     Sigue una estrategia para completar piso por piso.
     """
     def __init__(self):
@@ -154,8 +162,21 @@ class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
 
         return 'nada'
 
+class AgenteAleatorio(entornos_o.Agente):
+    """
+    Un agente que solo regresa una accion al azar entre las acciones legales.
+    """
+    def __init__(self, acciones):
+        self.acciones = acciones
+
+    def programa(self, _):
+        return choice(self.acciones)
+
 def test():
     print("Prueba del entorno NueveCuartos con Agente Aleatorio")
+    entornos_o.simulador(NueveCuartos(),
+                         AgenteAleatorio(['ir_Derecha', 'ir_Izquierda', 'subir', 'bajar', 'limpiar', 'nada']),
+                         200)
 
     print("Prueba del entorno NueveCuartos con Agente Reactivo Modelo")
     entornos_o.simulador(NueveCuartos(),
