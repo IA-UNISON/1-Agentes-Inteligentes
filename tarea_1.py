@@ -11,7 +11,7 @@ import entornos_o
 from random import choice
 
 
-class NueveCuaartos(entornos_o.Entorno):
+class NueveCuartos(entornos_o.Entorno):
     """
     Clase para un entorno de nueve cuartos distribuidos en 3 pisos.
 
@@ -101,4 +101,67 @@ class NueveCuaartos(entornos_o.Entorno):
     def percepcion(self):
         robot = self.x[0]
         return self.x[0], self.x[robot + 1]
+
+
+class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
+    """
+    Agente reactivo basado en modelo para el entorno de 9 cuartos.
+    Sigue una estrategia para completar piso por piso.
+    """
+    def __init__(self):
+        """
+        Inicializa el modelo interno.
+        Asumimos peor caso: todo sucio.
+        """
+        self.modelo = [0, 'sucio', 'sucio', 'sucio', 'sucio', 'sucio', 'sucio', 'sucio', 'sucio', 'sucio']
+
+    def programa(self, percepcion):
+        robot, situacion = percepcion
+
+        self.modelo[0] = robot
+        self.modelo[robot + 1] = situacion
+
+        if all(cuarto == 'limpio' for cuarto in self.modelo[1:]):
+            return 'nada'
+
+        if situacion == 'sucio':
+            return 'limpiar'
+
+        if robot == 0 or robot == 1:
+            return 'ir_Derecha'
+
+        elif robot == 2:
+            return 'subir'
+
+        elif robot == 5:
+            if self.modelo[5] == 'sucio' or self.modelo[4] == 'sucio':
+                return 'ir_Izquierda'
+            else:
+                return 'subir'
+
+        elif robot == 4:
+            # Si el 3 (índice 4) no está limpio, sigo a la izquierda.
+            if self.modelo[4] == 'sucio':
+                return 'ir_Izquierda'
+            else:
+                return 'ir_Derecha'
+
+        elif robot == 3:
+            return 'ir_Derecha'
+
+        elif robot == 8 or robot == 7:
+            return 'ir_Izquierda'
+
+        return 'nada'
+
+def test():
+    print("Prueba del entorno NueveCuartos con Agente Aleatorio")
+
+    print("Prueba del entorno NueveCuartos con Agente Reactivo Modelo")
+    entornos_o.simulador(NueveCuartos(),
+                            AgenteReactivoModeloNueveCuartos(),
+                            200)
+
+if __name__ == "__main__":
+    test()
 
