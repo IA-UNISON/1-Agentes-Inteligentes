@@ -13,7 +13,7 @@ import entornos_f
 import entornos_o
 
 #NueveCuartos
-class NueveCuartos():
+class NueveCuartos(entornos_o.Entorno):
      """
      Clase para un entorno de nueve cuartos (3 pisos x 3 cuartos). 
      
@@ -47,7 +47,7 @@ class NueveCuartos():
         subir: C->F, F->I (solo legal en los primeros dos pisos, en los cuartos de la derecha).
 	    bajar: G->D, D->A (solo legal en los dos pisos de arriba, en los cuartos de la izquierda).
         limpiar: Cambia el estado del cuarto actual a limpio.
-        Nada: La accion no hace ningún cambio en el entorno.
+        nada: La accion no hace ningún cambio en el entorno.
 
         """
         robot, _ = estado
