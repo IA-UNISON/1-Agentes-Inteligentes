@@ -10,7 +10,7 @@ Revisa el archivo README.md con las instrucciones de la tarea.
 __author__ = 'Oliver Ruiz Beltran'
 
 import entornos_o
-from random import choice
+from random import choice, random
 
 
 class NueveCuartos(entornos_o.Entorno):
@@ -99,6 +99,7 @@ class NueveCuartos(entornos_o.Entorno):
         return self.x[0], self.x[" ABCDEFGHI".find(self.x[0])]
 
 class AgenteAleatorio(entornos_o.Agente):
+    
     def __init__(self, acciones):
         self.acciones = acciones
 
@@ -123,7 +124,6 @@ class AgenteAleatorio(entornos_o.Agente):
                 acciones_validas.append(accion)
                 
         return choice(acciones_validas)
-
 
 class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
     
@@ -167,15 +167,13 @@ class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
         if robot == 'D': return 'bajar'
         
         return 'nada' 
+
 class NueveCuartosCiego(NueveCuartos):
     """
     El agente sabe donde esta pero no sabe si los demas cuartos estan sucios
     """
     def percepcion(self):
         return self.x[0]
-
-
-
 
 class AgenteReactivoModeloNueveCuartosCiego(entornos_o.Agente):
     
@@ -213,6 +211,62 @@ class AgenteReactivoModeloNueveCuartosCiego(entornos_o.Agente):
 
         return 'nada'
 
+class NueveCuartosEstocastico(NueveCuartos):
+    def transicion(self, accion):
+        if not self.accion_legal(accion):
+            raise ValueError("La acción no es legal para este estado")
+
+        robot, a, b, c, d, e, f, g, h, i = self.x
+        
+        if (accion != "nada" or
+                a == "sucio" or b == "sucio" or c == "sucio" or
+                d == "sucio" or e == "sucio" or f == "sucio" or
+                g == "sucio" or h == "sucio" or i == "sucio"):
+            self.costo += 1
+
+        if accion in ["ir_Derecha", "ir_Izquierda"]:
+            self.costo += 1
+        elif accion in ["subir", "bajar"]:
+            self.costo += 2
+
+        if accion == "limpiar":
+            if random() < 0.8:
+                self.x[" ABCDEFGHI".find(robot)] = "limpio"
+            
+        elif accion in ["ir_Derecha", "ir_Izquierda", "subir", "bajar"]:
+            rand = random()
+            
+            accion_a_ejecutar = accion 
+            
+            if rand < 0.8:
+                 pass
+                
+            elif rand < 0.9:
+                accion_a_ejecutar = "nada"
+                
+            else:
+                posibles = ["ir_Derecha", "ir_Izquierda", "subir", "bajar"]
+                validas = [act for act in posibles if self.accion_legal(act)]
+                accion_a_ejecutar = choice(validas)
+
+            if accion_a_ejecutar == "ir_Derecha":
+                self.x[0] = " ABCDEFGHI"[" ABCDEFGHI".find(robot) + 1]
+
+            elif accion_a_ejecutar == "ir_Izquierda":
+                self.x[0] = " ABCDEFGHI"[" ABCDEFGHI".find(robot) - 1]
+
+            elif accion_a_ejecutar == "subir":
+                if robot == 'C': self.x[0] = 'F'
+                elif robot == 'F': self.x[0] = 'I'
+
+            elif accion_a_ejecutar == "bajar":
+                if robot == 'G': self.x[0] = 'D'
+                elif robot == 'D': self.x[0] = 'A'
+
+
+class AgenteReactivoEstocastico(AgenteReactivoModeloNueveCuartos):
+    pass
+
 def test():
     x0 = ["A", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio"]
     acciones = ["ir_Derecha", "ir_Izquierda", "subir", "bajar", "limpiar", "nada"]
@@ -242,6 +296,19 @@ def test():
     print("="*50)
     entornos_o.simulador(NueveCuartosCiego(x0),
                          AgenteReactivoModeloNueveCuartosCiego(),
+                         200)
+    print("\n" + "="*50)
+    print("PRUEBA 4: Agente aleatorio estocastico")
+    print("="*50)
+    entornos_o.simulador(NueveCuartosEstocastico(x0),
+                         AgenteAleatorio(acciones),
+                         200)
+
+    print("\n" + "="*50)
+    print("PRUEBA 4.5: Agente reactivo estocastico")
+    print("="*50)
+    entornos_o.simulador(NueveCuartosEstocastico(x0),
+                         AgenteReactivoEstocastico(),
                          200)
 
 if __name__ == "__main__":
