@@ -9,16 +9,36 @@ Revisa el archivo README.md con las instrucciones de la tarea.
 """
 __author__ = 'KarolBurrola'
 
-import entornos_f
 import entornos_o
 import  random
 from random import choice
 
 class NueveCuartos(entornos_o.Entorno):
+    """
+
+    Estructura base para los cuartos:
+    P3: 6 -- 7 -- 8
+    P2: 3 -- 4 -- 5
+    P1: 0 -- 1 -- 2
+
+    Reglas:
+    - El robot debe de limpiar todos los cuartos
+    - El robot inicia en la casilla 0 y solo puede moverse a la izquierda
+    - El robot puede subir ÚNICAMENTE cuando está en el borde derecho, es decir, la columna que tiene el 8, 5 y 2 (Ej: Partiendo del 2 hacia arriba hasta llegar al 8)
+    - El robot puede bajar ÚNICAMENTE cuando está en el borde izquierdo, es decir, la columna que tiene el 6, 3 y 0 (Ej: Partiendo del 6 hacia abajo donde puede llegar al 3)
+    - El robot puede desplazarse tanto a la izquierda como hacia la derecha mientras esté en una casilla de en medio
+    - El robot NO puede desplazarse a la izquierda si está en el borde izquierdo, es decir, la columna que tiene el 6, 3 y 0 (SOLO PUEDE A LA DERECHA)
+    - El robot NO puede desplazarse a la derecha si está en el borde derecho, es decir, la columna que tiene el 8,5 y el 2 (SOLO PUEDE A LA IZQUIERDA)
+    - El patrón a notar es que de izquierda a derecha se suma i+1 y de derecha a izquierda es i-1
+    - Otro patrón a notar es que para subir es i+3, mientras que para bajar es i-3
+
+    """
+#Comenzamos con el robot en la casilla 0 y todos los cuartos sucios
     def __init__(self, x0=[0, "sucio", "sucio","sucio","sucio","sucio","sucio","sucio","sucio","sucio"]):
         self.x = x0[:]
         self.costo=0
 
+#Corrobora si la acción que se está realizando es posible de hacerse o no
     def accion_legal(self, accion):
         robot = self.x[0]
 
@@ -31,9 +51,18 @@ class NueveCuartos(entornos_o.Entorno):
         if accion == "bajar":
             return robot == 6 or robot == 3
 
-        return True
+        return True #Por si llega a ser la opción "limpiar" o "nada", esto es válido
 
     def transicion(self,accion):
+
+        """
+        Costos de las acciones:
+        Nada = 0
+        Limpiar = 1
+        Ir a la derecha/izquierda = 2
+        Subir/Bajar = 3
+        """
+
         robot = self.x[0]
         costopaccion = 0
 
@@ -43,8 +72,6 @@ class NueveCuartos(entornos_o.Entorno):
             costopaccion = 2
         elif accion in ("subir", "bajar"):
             costopaccion = 3
-        else:
-            raise ValueError("Accion no valida")
 
         self.costo += costopaccion
         if not self.accion_legal(accion):
@@ -80,11 +107,17 @@ class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
         self.modelo[0] = robot
         self.modelo[robot + 1] = situacion
 
+        #Si todos los cuartos están limpios, se detiene
         if all(habitacion == "limpio" for habitacion in self.modelo[1:]):
             return "nada"
+        #Si el lugar actual está sucio, se limpia
         if situacion == "sucio":
             return "limpiar"
 
+        """
+        Mi estrategia consiste en lo siguiente:
+        
+        """
         if robot == 0 or robot == 1:
             return "ir_Derecha"
         elif robot == 2:
@@ -175,26 +208,19 @@ class NueveCuartosEstocastico(NueveCuartos):
 class AgenteReactivoModeloEstocastico(AgenteReactivoModeloNueveCuartos):
     pass
 
+def test():
 
+    print("Prueba del entorno con un agente aleatorio")
+    entornos_o.simulador(NueveCuartos(), AgenteAleatorio(["ir_Derecha", "ir_Izquierda", "subir", "bajar", "limpiar", "nada"]), 200)
 
+    print("Prueba del entorno con un agente reactivo modelo")
+    entornos_o.simulador(NueveCuartos(), AgenteReactivoModeloNueveCuartos(), 200)
 
+    print("Prueba del entorno NueveCuartosCiego con un agente reactivo con modelo ciego")
+    entornos_o.simulador(NueveCuartosCiego(), AgenteReactivoModeloNueveCuartosCiego(), 200)
 
+    print("Prueba del entorno NuveCuartosEstocastico con agente reactivo con modelo")
+    entornos_o.simulador(NueveCuartosEstocastico(), AgenteReactivoModeloEstocastico(), 200)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Requiere el modulo entornos_f.py o entornos_o.py
-# Usa el modulo doscuartos_f.py para reutilizar código
-# Agrega los modulos que requieras de python
+if __name__ == "__main__":
+    test()
