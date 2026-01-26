@@ -7,7 +7,7 @@ tarea_1.py
 Revisa el archivo README.md con las instrucciones de la tarea.
 
 """
-__author__ = 'escribe_tu_nombre'
+__author__ = 'Diego Gallegos Hernandez'
 
 import entornos_o
 
