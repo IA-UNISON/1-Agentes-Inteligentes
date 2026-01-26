@@ -105,13 +105,13 @@ class AgenteNueveCuartosCiego(entornos_o.Agente):
             ['limpiar', 'ir_Der'] * 2 + ['limpiar', 'nada']
         )
         self.paso = 0
-
     def programa(self, _):
         if self.paso < len(self.plan):
             accion = self.plan[self.paso]
             self.paso += 1
             return accion
-        return 'nada'
+        acciones_ciegas=["limpiar","ir_Der","ir_Izq"]
+        return choice (acciones_ciegas)
 
 
 class AgenteNueveCuartosEstocastico(entornos_o.Agente):
@@ -172,28 +172,58 @@ class AgenteNueveCuartosEstocastico(entornos_o.Agente):
 
 def test():
     x0 = ["A"] + ["sucio"] * 9
-    print("Simulación de 9 cuartos con Agente de Modelo")
-    entornos_o.simulador(NueveCuartos(x0), AgenteReactivoModeloNueveCuartos(), 20)
 
-    print("Simulación de 9 cuartos con Agente de Modelo")
-    entornos_o.simulador(NueveCuartos(x0), AgenteAleatorio  (["ir_Izq", "ir_Der", "subir", "bajar", "limpiar", "nada"]), 20)
+    print("Prueba del entorno con un Agente Reactivo")
+    entornos_o.simulador(NueveCuartos(x0),AgenteReactivoNueveCuartos(),  200)
 
+    print("Simulación de 9 cuartos con Agente Aleatorio")
+    entornos_o.simulador(NueveCuartos(x0), AgenteAleatorio  (["ir_Izq", "ir_Der", "subir", "bajar", "limpiar", "nada"]), 200)
 
-    print("Prueba del entorno con un agente reactivo")
-    entornos_o.simulador(NueveCuartos(x0),
-                         AgenteReactivoNueveCuartos(),
-                         20)
+    """
+    Comparacion entre un agente Reactivo y un Agente Aleatorio
+    Para cada agente se corrio la simulacion con 200 pasos
+    
+    Lo que se noto en la comparacion entre los agentes es que el agente reactivo cumplio con limpiar todos los cuartos 
+    con un costo de 27 pero al seguir corriendo la simulacion el agente se  quedo entre el cuarto I y H sin hacer nada mas
+    llendo entre uno y el otro sabiendo que ya estaban limpio , el costo al final de la simulacion fue de 391
+    
+    En cambio el agente aleatorio no logro limpiar todos los cuartos , por que hacia cosas sin sentido como tomar la decision 
+    de ir a la izquierda en un lado que no podia , o quedarse sin hacer nada en un cuarto sucio , 
+    el costo final de la simulacion fue de 141 , siendo bastante menor que el del agente reactivo pero sin limpiar todos los cuartos
+    
+    """
+
+    """
+    Comparacion entre un agente aleatorio y un agente ciego
+    Para cada agente se corrio la simulacion con 200 pasos
+    
+    El agente  ciego logro limpiar todos los cuartos con un costo de 27 , ya que aunque no tenga memoria , el sabe que en donde estaba estaba sucio lo
+    limpiaba y asi hasta llegar al final, donde al no saber si el cuarto donde estaba estaba sucio o no , se quedo limpiandolo y moviendose sin sentido
+    Y el agente aleatorio no logra limpiar todos los cuartos , y sigue haciendo cosas sin sentido 
+    """
 
     print("Prueba del entorno con un Agente Ciego")
     entornos_o.simulador(NueveCuartos(x0),
                          AgenteNueveCuartosCiego(),
-                        20)
+                        200)
 
+    """
+    Comparacion entre un agente estocastico y un agente aleatorio
+    Para cada agente se corrio la simulacion con 200 pasos
+    
+    El agente estocastico si logro limpiar todos los cuartos con un costo de 33 , en un momento decidio no hacer nada en momentos que solo 
+    debia de ir a la derecha o limpiar 2 veces por como se configuraron sus acciones con probabilidades , pero en general logro limpiar todos los cuartos
+    El agente aleatorio no logro limpiar todos los cuartos y seguia haciendo cosas sin sentido
+    """
 
-    print("Prueba del entorno con un Agente Reactivo")
+    print("Prueba del entorno con un Agente Estocastico")
     entornos_o.simulador(NueveCuartos(x0),
                          AgenteNueveCuartosEstocastico(),
-                         20)
+                         200)
+
+    print("Simulación de 9 cuartos con Agente de Modelo")
+    entornos_o.simulador(NueveCuartos(x0), AgenteReactivoModeloNueveCuartos(), 200)
+
 
 
 if __name__ == "__main__":
