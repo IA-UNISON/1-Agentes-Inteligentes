@@ -39,13 +39,16 @@ class NueveCuartos(entornos_o.Entorno):
 
         robot = self.x[0]
 
+
+
+
         movimientos = {
             "A": {"ir_Der": "B"},
             "B": {"ir_Izq": "A", "ir_Der": "C"},
             "C": {"ir_Izq": "B", "subir": "F"},
-            "D": {"ir_Der": "E", "subir": "G"},
+            "D": {"ir_Der": "E", "bajar": "A"},
             "E": {"ir_Izq": "D", "ir_Der": "F"},
-            "F": {"ir_Izq": "E", "bajar": "C"},
+            "F": {"ir_Izq": "E", "subir": "I"},
             "G": {"ir_Der": "H", "bajar": "D"},
             "H": {"ir_Izq": "G", "ir_Der": "I"},
             "I": {"ir_Izq": "H"}
@@ -89,12 +92,12 @@ class AgenteReactivoNueveCuartos(entornos_o.Agente):
         if situacion == 'sucio':
             return 'limpiar'
 
-        return ('ir_Der' if robot in ('A', 'B') else
-                'subir' if robot == 'C' else
-                'ir_Izq' if robot in ('F', 'E') else
-                'subir' if robot == 'D' else
-                'ir_Der' if robot in ('G', 'H') else
-                'ir_Izq')
+        pasos = {
+            'A': 'ir_Der', 'B': 'ir_Der', 'C': 'subir',
+            'F': 'subir', 'I': 'ir_Izq', 'H': 'ir_Izq',
+            'G': 'bajar', 'D': 'ir_Der', 'E': 'ir_Izq'
+        }
+        return pasos.get(robot, 'nada')
 
 
 class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
@@ -112,14 +115,14 @@ class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
 
         if situacion == 'sucio':
             return 'limpiar'
-
+        
         if all(estado == 'limpio' for estado in self.memoria.values()):
             return 'nada'
 
         pasos = {
             'A': 'ir_Der', 'B': 'ir_Der', 'C': 'subir',
-            'F': 'ir_Izq', 'E': 'ir_Izq', 'D': 'subir',
-            'G': 'ir_Der', 'H': 'ir_Der', 'I': 'nada'
+            'F': 'subir', 'I': 'ir_Izq', 'H': 'ir_Izq',
+            'G': 'bajar', 'D': 'ir_Der', 'E': 'ir_Izq'
         }
         return pasos.get(robot, 'nada')
 
@@ -130,11 +133,12 @@ class AgenteNueveCuartosCiego(entornos_o.Agente):
      """
     def __init__(self):
         self.plan = (
-            ['limpiar', 'ir_Der'] * 2 + ['limpiar', 'subir'] +
-            ['limpiar', 'ir_Izq'] * 2 + ['limpiar', 'subir'] +
+            ['limpiar', 'ir_Der'] * 2 + ['limpiar', 'subir'] *2 +
+            ['limpiar', 'ir_Izq'] * 2 + ['limpiar', 'bajar'] +
             ['limpiar', 'ir_Der'] * 2 + ['limpiar', 'nada']
         )
         self.paso = 0
+
     def programa(self, _):
         if self.paso < len(self.plan):
             accion = self.plan[self.paso]
@@ -166,8 +170,8 @@ class AgenteNueveCuartosEstocastico(entornos_o.Agente):
 
         pasos = {
             'A': 'ir_Der', 'B': 'ir_Der', 'C': 'subir',
-            'F': 'ir_Izq', 'E': 'ir_Izq', 'D': 'subir',
-            'G': 'ir_Der', 'H': 'ir_Der', 'I': 'nada'
+            'F': 'subir', 'I': 'ir_Izq', 'H': 'ir_Izq',
+            'G': 'bajar', 'D': 'ir_Der', 'E': 'ir_Izq'
         }
 
         accion_planeada = pasos.get(robot, 'nada')
@@ -207,10 +211,10 @@ def test():
     x0 = ["A"] + ["sucio"] * 9
 
     print("Prueba del entorno con un Agente Reactivo")
-    entornos_o.simulador(NueveCuartos(x0),AgenteReactivoNueveCuartos(),  200)
+    entornos_o.simulador(NueveCuartos(x0),AgenteReactivoNueveCuartos(),  20)
 
     print("Simulación de 9 cuartos con Agente Aleatorio")
-    entornos_o.simulador(NueveCuartos(x0), AgenteAleatorio  (["ir_Izq", "ir_Der", "subir", "bajar", "limpiar", "nada"]), 200)
+    entornos_o.simulador(NueveCuartos(x0), AgenteAleatorio  (["ir_Izq", "ir_Der", "subir", "bajar", "limpiar", "nada"]), 20)
 
     """
     Comparacion entre un agente Reactivo y un Agente Aleatorio
@@ -238,7 +242,7 @@ def test():
     print("Prueba del entorno con un Agente Ciego")
     entornos_o.simulador(NueveCuartos(x0),
                          AgenteNueveCuartosCiego(),
-                        200)
+                        50)
 
     """
     Comparacion entre un agente estocastico y un agente aleatorio
@@ -252,10 +256,10 @@ def test():
     print("Prueba del entorno con un Agente Estocastico")
     entornos_o.simulador(NueveCuartos(x0),
                          AgenteNueveCuartosEstocastico(),
-                         200)
+                         0)
 
     print("Simulación de 9 cuartos con Agente de Modelo")
-    entornos_o.simulador(NueveCuartos(x0), AgenteReactivoModeloNueveCuartos(), 200)
+    entornos_o.simulador(NueveCuartos(x0), AgenteReactivoModeloNueveCuartos(), 0)
 
 
 
