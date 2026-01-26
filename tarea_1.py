@@ -10,6 +10,7 @@ Revisa el archivo README.md con las instrucciones de la tarea.
 __author__ = 'andresgutierrez'
 
 import entornos_o
+from doscuartos_o import AgenteAleatorio
 
 class NueveCuartos(entornos_o.Entorno):
     def __init__(self, x0=[1, "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio"]):
@@ -65,3 +66,27 @@ class NueveCuartos(entornos_o.Entorno):
 
     def percepcion(self):
         return self.x[0], self.x[self.x[0]]
+    
+    class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
+        def __init__(self):
+            self.modelo = [1, "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio"]
+
+        def programa(self, percepcion):
+            robot, situacion = percepcion
+
+            # Actualiza el modelo interno
+            self.modelo[0] = robot
+            self.modelo[robot] = situacion
+
+            s = self.modelo
+
+            return ('nada' if not 'sucio' in s[1:] else
+                'limpiar' if situacion == 'sucio' else
+                'ir_Derecha' if robot in [1, 2] else
+                'subir' if robot == 3 else
+                ('ir_Izquierda' if s[4] == 'sucio' or s[5] == 'sucio' else 'subir') if robot == 6 else
+                ('ir_Izquierda' if s[4] == 'sucio' else 'ir_Derecha') if robot == 5 else
+                'ir_Derecha' if robot == 4 else 
+                'ir_Izquierda' if robot in [9, 8] else
+                'bajar' if robot == 7 else 
+                'nada')
