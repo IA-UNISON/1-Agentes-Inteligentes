@@ -44,6 +44,7 @@ class NueveCuartos(entornos_o.Entorno):
         
         robot = self.x[0]
 
+        # Actualizar Costos
         if accion == "limpiar":
             self.costo += 1
         elif accion in ("ir_Derecha", "ir_Izquierda"):
@@ -53,6 +54,7 @@ class NueveCuartos(entornos_o.Entorno):
         elif accion == "nada" and "sucio" in self.x[1:]:
             self.costo += 1
 
+        # Actualizar Estado
         if accion == "limpiar":
             self.x[robot] = "limpio"
         elif accion == "ir_Derecha":
@@ -66,27 +68,44 @@ class NueveCuartos(entornos_o.Entorno):
 
     def percepcion(self):
         return self.x[0], self.x[self.x[0]]
-    
-    class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
-        def __init__(self):
-            self.modelo = [1, "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio"]
 
-        def programa(self, percepcion):
-            robot, situacion = percepcion
+class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
+    def __init__(self):
+        self.modelo = [1, "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio"]
 
-            # Actualiza el modelo interno
-            self.modelo[0] = robot
-            self.modelo[robot] = situacion
+    def programa(self, percepcion):
+        robot, situacion = percepcion
 
-            s = self.modelo
+        # Actualiza el modelo interno
+        self.modelo[0] = robot
+        self.modelo[robot] = situacion
 
-            return ('nada' if not 'sucio' in s[1:] else
-                'limpiar' if situacion == 'sucio' else
-                'ir_Derecha' if robot in [1, 2] else
-                'subir' if robot == 3 else
-                ('ir_Izquierda' if s[4] == 'sucio' or s[5] == 'sucio' else 'subir') if robot == 6 else
-                ('ir_Izquierda' if s[4] == 'sucio' else 'ir_Derecha') if robot == 5 else
-                'ir_Derecha' if robot == 4 else 
-                'ir_Izquierda' if robot in [9, 8] else
-                'bajar' if robot == 7 else 
-                'nada')
+        s = self.modelo
+
+        return ('nada' if not 'sucio' in s[1:] else
+            'limpiar' if situacion == 'sucio' else
+            'ir_Derecha' if robot in [1, 2] else
+            'subir' if robot == 3 else
+            ('ir_Izquierda' if s[4] == 'sucio' or s[5] == 'sucio' else 'subir') if robot == 6 else
+            ('ir_Izquierda' if s[4] == 'sucio' else 'ir_Derecha') if robot == 5 else
+            'ir_Derecha' if robot == 4 else 
+            'ir_Izquierda' if robot in [9, 8] else
+            'bajar' if robot == 7 else 
+            'nada')
+
+def test():
+    x0 = [1, "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio"]
+
+    print("Prueba del entorno con un agente aleatorio")
+    entornos_o.simulador(NueveCuartos(x0),
+                         AgenteAleatorio(['ir_Derecha', 'ir_Izquierda', 'subir', 'bajar', 'limpiar', 'nada']),
+                         200)
+
+    print("Prueba del entorno con un agente reactivo con modelo")
+    entornos_o.simulador(NueveCuartos(x0),
+                         AgenteReactivoModeloNueveCuartos(),
+                         200)
+
+
+if __name__ == "__main__":
+    test()
