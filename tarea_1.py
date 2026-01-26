@@ -268,6 +268,38 @@ class AgenteReactivoModeloNueveCuartosCiego(entornos_o.Agente):
         
         return "nada"
     
+class AgenteAleatorioNueveCuartosCiego(entornos_o.Agente):
+    """
+    Un agente que selecciona acciones aleatorias entre las acciones legales
+    para el entorno ciego (donde solo percibe su posición)
+    """
+    
+    def __init__(self):
+        self.acciones = ["ir_Derecha", "ir_Izquierda", "subir", "bajar", "limpiar", "nada"]
+    
+    def programa(self, percepcion):
+        """
+        Selecciona una acción aleatoria solo entre las acciones válidas
+        para la posición actual del robot
+        """
+        robot, = percepcion  
+        
+        acciones_validas = []
+        
+        for accion in self.acciones:
+            if accion == "subir" and robot in (2, 5):
+                acciones_validas.append(accion)
+            elif accion == "bajar" and robot in (6, 3):
+                acciones_validas.append(accion)
+            elif accion == "ir_Derecha" and robot not in (2, 5, 8):
+                acciones_validas.append(accion)
+            elif accion == "ir_Izquierda" and robot not in (0, 3, 6):
+                acciones_validas.append(accion)
+            elif accion in ("limpiar", "nada"):
+                acciones_validas.append(accion)
+        
+        return random.choice(acciones_validas)
+    
 class NueveCuartosEstocastico(NueveCuartos):
     """
     Entorno estocástico donde las acciones no siempre funcionan como se espera:
@@ -395,6 +427,17 @@ def test():
              "sucio", "sucio", "sucio", 
              "sucio", "sucio", "sucio",]
     
+    """
+    OBSERVACIONES 
+    No me quedo claro si tenia que comparar los agentes de cada entorno con el aleatorio normal, 
+    o con uno aleatorio para cada entorno, por lo cual compare cada uno con un agente
+    aleatorio en ese mismo entorno.
+
+    Reduje el numero de iteraciones para los agentes racionales ya que solo les tomaba alrededor
+    de 30 iteraciones limpiar todos los cuartos, y hacia mucho clutter en el output.
+
+    """
+
     # Primer y segundo punto de la tarea
     print("Prueba del entorno con un agente aleatorio")
     entornos_o.simulador(NueveCuartos(x0),
@@ -404,19 +447,29 @@ def test():
     print("Prueba del entorno con un agente reactivo con modelo")
     entornos_o.simulador(NueveCuartos(x0),
                          AgenteReactivoModeloNueveCuartos(),
-                         200)
+                         50)
     
     # Tercer punto de la tarea 
+    print("Prueba del entorno ciego con un agente aleatorio")
+    entornos_o.simulador(NueveCuartosCiego(x0),
+                         AgenteAleatorioNueveCuartosCiego(),
+                         200)
+    
     print("Prueba del entorno ciego con un agente reactivo con modelo")
     entornos_o.simulador(NueveCuartosCiego(x0),
                          AgenteReactivoModeloNueveCuartosCiego(),
-                         200)
+                         50)
     
     # Cuarto punto de la tarea
+    print("Prueba del entorno estocástico con un agente aleatorio")
+    entornos_o.simulador(NueveCuartosEstocastico(x0),
+                         AgenteAleatorioNueveCuartos(),
+                         200)
+    
     print("Prueba del entorno estocastico con un agente reactivo con modelo")
     entornos_o.simulador(NueveCuartosEstocastico(x0),
                          AgenteReactivoModeloNueveCuartosEstocastico(),
-                         200)
+                         50)
     
 if __name__ == "__main__":
     test()
