@@ -2,6 +2,28 @@ import entornos_o
 from random import choice
 import random
 
+"""
+Los nueve cuartos se tomaron como :
+
+        G  |  H  |  I
+       ----|-----|----
+        D  |  E  |  F
+       ----|-----|----
+        A  |  B  |  C
+        
+El robot comienza en el cuarto A con todos los cuartos sucios
+
+Acciones legales:
+Cuarto A : Ir_Derecha, Limpiar,Nada
+Cuarto B : Ir_Izquierda, Ir_Derecha, Limpiar,Nada
+Cuarto C : Ir_Izquierda, Subir, Limpiar,Nada
+Cuarto D : Ir_Derecha, Bajar, Limpiar,Nada
+Cuarto E : Ir_Izquierda, Ir_Derecha, Limpiar,Nada
+Cuarto F : Ir_Izquierda, Subir, Limpiar,Nada
+Cuarto G : Ir_Derecha, Bajar, Limpiar,Nada
+Cuarto H : Ir_Izquierda, Ir_Derecha, Limpiar,Nada
+Cuarto I : Ir_Izquierda, Limpiar,Nada
+"""
 
 class NueveCuartos(entornos_o.Entorno):
     def __init__(self, x0 = ["A"] + ["sucio"] * 9):
