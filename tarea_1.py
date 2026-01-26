@@ -9,6 +9,7 @@ __author__ = 'franciscoricardohernandezastorga'
 
 import entornos_o
 from random import choice
+import random
 
 
 class NueveCuartos(entornos_o.Entorno):
@@ -200,8 +201,6 @@ class AgenteReactivoModeloNueveCuartosCiego(AgenteReactivoModeloNueveCuartos):
         if all(cuarto == 'limpio' for cuarto in self.modelo[1:]):
             return 'nada'
 
-        # B. Lógica de Limpieza a Ciegas
-        # Consulto mi memoria sobre el cuarto actual
         estado_creido = self.modelo[robot + 1]
 
         if estado_creido == 'sucio':
@@ -233,6 +232,63 @@ class AgenteReactivoModeloNueveCuartosCiego(AgenteReactivoModeloNueveCuartos):
 
         return 'nada'
 
+
+class NueveCuartosEstocastico(NueveCuartos):
+    """
+    Entorno con incertidumbre (no se sabe si realizara la accion a ciencia cierta).
+    """
+
+    def transicion(self, accion):
+
+        robot = self.x[0]
+
+        costo_accion = 0
+        if accion == "limpiar":
+            costo_accion = 1
+        elif accion in ["ir_Derecha", "ir_Izquierda"]:
+            costo_accion = 2
+        elif accion in ["subir", "bajar"]:
+            costo_accion = 3
+
+        self.costo += costo_accion
+
+        if not self.accion_legal(accion):
+            return
+
+        rand = random.random()
+
+        if accion == "limpiar":
+            if rand <= 0.8:
+                self.x[robot + 1] = "limpio"
+
+        else:
+            if rand <= 0.8:
+                efecto = accion
+
+            elif rand <= 0.9:
+                return
+
+            else:
+                acciones_movimiento = ["ir_Derecha", "ir_Izquierda", "subir", "bajar"]
+                acciones_posibles = [a for a in acciones_movimiento if self.accion_legal(a)]
+                efecto = random.choice(acciones_posibles)
+
+            if efecto == "ir_Derecha":
+                self.x[0] += 1
+            elif efecto == "ir_Izquierda":
+                self.x[0] -= 1
+            elif efecto == "subir":
+                self.x[0] += 3
+            elif efecto == "bajar":
+                self.x[0] -= 3
+
+class AgenteReactivoModeloEstocastico(AgenteReactivoModeloNueveCuartos):
+    """
+    Agente racional para entorno estocástico.
+    Hereda la logica del modelo nueve cuartos:
+    """
+    pass
+
 def test():
 
     print("Prueba del entorno NueveCuartos con Agente Aleatorio")
@@ -262,6 +318,16 @@ def test():
     Esta es mas parecida al resultado de de AgenteReactivoModeloNueveCuartos, ya que hace lo mismo
     con la diferencia de que este agente limpia aunque el cuarto ya este limpio, pero despues de
     esto, lo guarda en su memoria y sigue avanzando.
+    """
+
+    print("Prueba del entorno NueveCuartosEstocastico con Agente Reactivo Modelo")
+    entornos_o.simulador(NueveCuartosEstocastico(),
+                         AgenteReactivoModeloEstocastico(),
+                         200)
+
+    """
+    Esta se podria decir que es mas realista, a diferencia del alateoreo este se puede equivocar
+    como podria pasar en la vida real, pero el costo sigue siendo muchisimo menos, no hay comparacion.
     """
 
 if __name__ == "__main__":
