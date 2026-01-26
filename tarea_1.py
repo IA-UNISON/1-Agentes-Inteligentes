@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 # -*- coding: utf-8 -*-
 """
 tarea_1.py
@@ -89,7 +89,8 @@ class NueveCuartos(entornos_o.Entorno):
             nuevo_estado[cuarto + 1] = "limpio"
             self.costo += 1
         elif accion == "nada":
-            self.costo += 0
+            if any(self.x[i] == "sucio" for i in range(1, 10)):
+                self.costo += 1
         
         self.x = nuevo_estado
     
@@ -154,3 +155,53 @@ class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
             return "ir_Izquierda"
 
         return "nada"
+    
+class AgenteAleatorioNueveCuartos(entornos_o.Agente):
+    """
+    Un agente que selecciona acciones aleatorias entre las acciones legales
+    """
+    
+    def __init__(self):
+        self.acciones = ["ir_Derecha", "ir_Izquierda", "subir", "bajar", "limpiar", "nada"]
+    
+    def programa(self, percepcion):
+        """
+        Selecciona una acción aleatoria solo entre las acciones válidas
+        para la posición actual del robot
+        """
+        robot, _ = percepcion
+        
+        # Filtrar solo acciones legales para la posición actual
+        acciones_validas = []
+        
+        for accion in self.acciones:
+            if accion == "subir" and robot in (2, 5):
+                acciones_validas.append(accion)
+            elif accion == "bajar" and robot in (6, 3):
+                acciones_validas.append(accion)
+            elif accion == "ir_Derecha" and robot not in (2, 5, 8):
+                acciones_validas.append(accion)
+            elif accion == "ir_Izquierda" and robot not in (0, 3, 6):
+                acciones_validas.append(accion)
+            elif accion in ("limpiar", "nada"):
+                acciones_validas.append(accion)
+        
+        return random.choice(acciones_validas)
+
+def test():
+    x0 = [0, "sucio", "sucio", "sucio", 
+             "sucio", "sucio", "sucio", 
+             "sucio", "sucio", "sucio",]
+    
+    print("Prueba del entorno con un agente aleatorio")
+    entornos_o.simulador(NueveCuartos(x0),
+                         AgenteAleatorioNueveCuartos(),
+                         200)
+    
+    print("Prueba del entorno con un agente reactivo con modelo")
+    entornos_o.simulador(NueveCuartos(x0),
+                         AgenteReactivoModeloNueveCuartos(),
+                         200)
+    
+if __name__ == "__main__":
+    test()
