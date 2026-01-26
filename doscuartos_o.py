@@ -12,7 +12,6 @@ Ejemplo de un entorno muy simple y agentes idem
 import entornos_o
 from random import choice
 
-
 __author__ = 'juliowaissman'
 
 
@@ -31,6 +30,7 @@ class DosCuartos(entornos_o.Entorno):
     con la ubicación del robot y el estado de limpieza
 
     """
+
     def __init__(self, x0=["A", "sucio", "sucio"]):
         """
         Por default inicialmente el robot está en A y los dos cuartos
@@ -66,6 +66,7 @@ class AgenteAleatorio(entornos_o.Agente):
     Un agente que solo regresa una accion al azar entre las acciones legales
 
     """
+
     def __init__(self, acciones):
         self.acciones = acciones
 
@@ -78,10 +79,11 @@ class AgenteReactivoDoscuartos(entornos_o.Agente):
     Un agente reactivo simple
 
     """
+
     def programa(self, percepcion):
         robot, situacion = percepcion
         return ('limpiar' if situacion == 'sucio' else
-                'ir_A' if robot == 'B' else 
+                'ir_A' if robot == 'B' else
                 'ir_B')
 
 
@@ -90,6 +92,7 @@ class AgenteReactivoModeloDosCuartos(entornos_o.Agente):
     Un agente reactivo basado en modelo
 
     """
+
     def __init__(self):
         """
         Inicializa el modelo interno en el peor de los casos
@@ -111,12 +114,12 @@ class AgenteReactivoModeloDosCuartos(entornos_o.Agente):
                 'ir_A' if robot == 'B' else 'ir_B')
 
 
-
 class DosCuartosCiego(DosCuartos):
     """
     Igual que DosCuartos, pero no se puede ver nada
 
     """
+
     def percepcion(self):
         return []
 
@@ -126,6 +129,7 @@ class AgenteReactivoModeloDosCuartosCiego(entornos_o.Agente):
     Un agente reactivo basado en modelo
 
     """
+
     def __init__(self):
         """
         Inicializa el modelo interno en el peor de los casos
@@ -134,14 +138,14 @@ class AgenteReactivoModeloDosCuartosCiego(entornos_o.Agente):
         self.modelo = ['?', 'sucio', 'sucio']
 
     def programa(self, _):
-        
+
         # Decide sobre el modelo interno
         robot, a, b = self.modelo
         accion = ('ir_A' if robot == '?' else
                   'nada' if a == b == 'limpio' else
                   'limpiar' if self.modelo[' AB'.find(robot)] == 'sucio' else
-                  'ir_A' if robot == 'B' else 'ir_B' 
-                  
+                  'ir_A' if robot == 'B' else 'ir_B'
+
                   )
 
         # Actualiza el modelo interno
@@ -151,12 +155,8 @@ class AgenteReactivoModeloDosCuartosCiego(entornos_o.Agente):
             self.modelo[0] = 'B'
         elif accion == 'limpiar':
             self.modelo[' AB'.find(robot)] = 'limpio'
-            
+
         return accion
-        
-
-    
-
 
 
 def test():
@@ -164,26 +164,26 @@ def test():
     Prueba del entorno y los agentes
 
     """
-    x0=["A", "sucio", "sucio"]
-    
+    x0 = ["A", "sucio", "sucio"]
+
     print("Prueba del entorno con un agente aleatorio")
     entornos_o.simulador(DosCuartos(x0),
                          AgenteAleatorio(['ir_A', 'ir_B', 'limpiar', 'nada']),
                          100)
 
     print("Prueba del entorno con un agente reactivo")
-    entornos_o.simulador(DosCuartos(x0), 
-                         AgenteReactivoDoscuartos(), 
+    entornos_o.simulador(DosCuartos(x0),
+                         AgenteReactivoDoscuartos(),
                          100)
 
     print("Prueba del entorno con un agente reactivo con modelo")
-    entornos_o.simulador(DosCuartos(x0), 
-                         AgenteReactivoModeloDosCuartos(), 
+    entornos_o.simulador(DosCuartos(x0),
+                         AgenteReactivoModeloDosCuartos(),
                          100)
 
     print("Prueba del entorno ciego con un agente reactivo con modelo")
-    entornos_o.simulador(DosCuartosCiego(x0), 
-                         AgenteReactivoModeloDosCuartosCiego(), 
+    entornos_o.simulador(DosCuartosCiego(x0),
+                         AgenteReactivoModeloDosCuartosCiego(),
                          100)
 
 

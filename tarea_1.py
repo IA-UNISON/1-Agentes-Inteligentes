@@ -98,6 +98,11 @@ class AgenteReactivoNueveCuartos(entornos_o.Agente):
 
 
 class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
+    """
+     Un agente reactivo simple
+
+     """
+
     def __init__(self):
         self.memoria = {k: 'desconocido' for k in 'ABCDEFGHI'}
 
@@ -120,6 +125,9 @@ class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
 
 
 class AgenteNueveCuartosCiego(entornos_o.Agente):
+    """
+     Un agente ciego que no sabe si donde esta esta sucio o limpio
+     """
     def __init__(self):
         self.plan = (
             ['limpiar', 'ir_Der'] * 2 + ['limpiar', 'subir'] +
@@ -137,6 +145,9 @@ class AgenteNueveCuartosCiego(entornos_o.Agente):
 
 
 class AgenteNueveCuartosEstocastico(entornos_o.Agente):
+    """
+     Un agente estocastico que toma algunas decisiones basadas en probabilidades
+     """
     def __init__(self):
         self.memoria = {k: 'desconocido' for k in 'ABCDEFGHI'}
 
