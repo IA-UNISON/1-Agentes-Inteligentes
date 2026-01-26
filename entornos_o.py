@@ -108,18 +108,18 @@ def simulador(entorno, agente, pasos=10, verbose=True):
               str(type(agente)) + "\n")
 
         print('Paso'.center(10) +
-              'Estado'.center(40) +
+              'Estado'.center(110) +
               u'Acción'.center(25) +
               u'Costo'.center(15))
 
-        print('_' * (10 + 40 + 25 + 15))
+        print('_' * (10 + 110 + 25 + 15))
 
         for i in range(pasos):
             print(str(i).center(10) +
-                  str(historial_estados[i]).center(40) +
+                  str(historial_estados[i]).center(110) +
                   str(historial_acciones[i]).center(25) +
                   str(historial_costo[i]).rjust(12))
 
-        print('_' * (10 + 40 + 25 + 15) + '\n\n')
+        print('_' * (10 + 110 + 25 + 15) + '\n\n')
 
     return historial_estados, historial_acciones, historial_costo
