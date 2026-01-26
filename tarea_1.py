@@ -40,8 +40,6 @@ class NueveCuartos(entornos_o.Entorno):
         robot = self.x[0]
 
 
-
-
         movimientos = {
             "A": {"ir_Der": "B"},
             "B": {"ir_Izq": "A", "ir_Der": "C"},
@@ -86,18 +84,6 @@ class AgenteAleatorio(entornos_o.Agente):
         return choice(self.acciones)
 
 
-class AgenteReactivoNueveCuartos(entornos_o.Agente):
-    def programa(self, percepcion):
-        robot, situacion = percepcion
-        if situacion == 'sucio':
-            return 'limpiar'
-
-        pasos = {
-            'A': 'ir_Der', 'B': 'ir_Der', 'C': 'subir',
-            'F': 'subir', 'I': 'ir_Izq', 'H': 'ir_Izq',
-            'G': 'bajar', 'D': 'ir_Der', 'E': 'ir_Izq'
-        }
-        return pasos.get(robot, 'nada')
 
 
 class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
@@ -135,7 +121,7 @@ class AgenteNueveCuartosCiego(entornos_o.Agente):
         self.plan = (
             ['limpiar', 'ir_Der'] * 2 + ['limpiar', 'subir'] *2 +
             ['limpiar', 'ir_Izq'] * 2 + ['limpiar', 'bajar'] +
-            ['limpiar', 'ir_Der'] * 2 + ['limpiar', 'nada']
+            ['limpiar', 'ir_Der']  + ['limpiar', 'nada']
         )
         self.paso = 0
 
@@ -144,7 +130,7 @@ class AgenteNueveCuartosCiego(entornos_o.Agente):
             accion = self.plan[self.paso]
             self.paso += 1
             return accion
-        acciones_ciegas=["limpiar","ir_Der","ir_Izq"]
+        acciones_ciegas=["nada"]
         return choice (acciones_ciegas)
 
 
@@ -208,27 +194,28 @@ class AgenteNueveCuartosEstocastico(entornos_o.Agente):
 
 
 def test():
-    x0 = ["A"] + ["sucio"] * 9
+    prueba_cuarto_sucio = ["A"] + ["sucio"] * 9
+    prueba_cuarto_limpio = ["A"] + ["limpio"] * 9
 
-    print("Prueba del entorno con un Agente Reactivo")
-    entornos_o.simulador(NueveCuartos(x0),AgenteReactivoNueveCuartos(),  20)
-
-    print("Simulación de 9 cuartos con Agente Aleatorio")
-    entornos_o.simulador(NueveCuartos(x0), AgenteAleatorio  (["ir_Izq", "ir_Der", "subir", "bajar", "limpiar", "nada"]), 20)
+    print("Simulación de 9 cuartos con Agente de Modelo")
+    entornos_o.simulador(NueveCuartos(prueba_cuarto_sucio), AgenteReactivoModeloNueveCuartos(), 200)
 
     """
     Comparacion entre un agente Reactivo y un Agente Aleatorio
     Para cada agente se corrio la simulacion con 200 pasos
-    
+
     Lo que se noto en la comparacion entre los agentes es que el agente reactivo cumplio con limpiar todos los cuartos 
-    con un costo de 27 pero al seguir corriendo la simulacion el agente se  quedo entre el cuarto I y H sin hacer nada mas
-    llendo entre uno y el otro sabiendo que ya estaban limpio , el costo al final de la simulacion fue de 391
-    
-    En cambio el agente aleatorio no logro limpiar todos los cuartos , por que hacia cosas sin sentido como tomar la decision 
-    de ir a la izquierda en un lado que no podia , o quedarse sin hacer nada en un cuarto sucio , 
-    el costo final de la simulacion fue de 141 , siendo bastante menor que el del agente reactivo pero sin limpiar todos los cuartos
-    
+    con un costo de 27 y al tener memoria y saber que termino de limpiar los cuartos se quedo en el ultimo cuarto haciendo nada 
+
+
+    En cambio el agente aleatorio no logro limpiar todos los cuartos en los 200 pasos , y tuvo un costo mucho mayor de 148 sin cumplir el objetivo
+    de limpiar todos los cuartos 
+
     """
+
+    print("Simulación de 9 cuartos con Agente Aleatorio")
+    entornos_o.simulador(NueveCuartos(prueba_cuarto_sucio), AgenteAleatorio  (["ir_Izq", "ir_Der", "subir", "bajar", "limpiar", "nada"]), 200)
+
 
     """
     Comparacion entre un agente aleatorio y un agente ciego
@@ -240,9 +227,9 @@ def test():
     """
 
     print("Prueba del entorno con un Agente Ciego")
-    entornos_o.simulador(NueveCuartos(x0),
+    entornos_o.simulador(NueveCuartos(prueba_cuarto_sucio),
                          AgenteNueveCuartosCiego(),
-                        50)
+                        200)
 
     """
     Comparacion entre un agente estocastico y un agente aleatorio
@@ -254,13 +241,24 @@ def test():
     """
 
     print("Prueba del entorno con un Agente Estocastico")
-    entornos_o.simulador(NueveCuartos(x0),
+    entornos_o.simulador(NueveCuartos(prueba_cuarto_sucio),
                          AgenteNueveCuartosEstocastico(),
-                         0)
+                         200)
 
-    print("Simulación de 9 cuartos con Agente de Modelo")
-    entornos_o.simulador(NueveCuartos(x0), AgenteReactivoModeloNueveCuartos(), 0)
+    """
+    Prueba del agente ciego para verificar que funcione cuando estan todos los cuartos limpios , teniendo que limpiarlos todos a comparacion
+    del agente modelo que puede saber si esta limpio o sucio
+    """
 
+    print ("Prueba entre el agente ciego y el basado en modelo para verificar el funcionamiento de ambos "
+           "en la situacion de todos los cuartos limpios ")
+
+    print("Prueba del entorno con un Agente basado en modelo")
+    entornos_o.simulador(NueveCuartos(prueba_cuarto_limpio),
+                         AgenteNueveCuartosCiego(),50)
+    print("Prueba del entorno con un Agente basado en modelo")
+    entornos_o.simulador(NueveCuartos(prueba_cuarto_limpio),
+                         AgenteReactivoModeloNueveCuartos(),50)
 
 
 if __name__ == "__main__":
