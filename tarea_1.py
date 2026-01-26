@@ -187,6 +187,87 @@ class AgenteAleatorioNueveCuartos(entornos_o.Agente):
                 acciones_validas.append(accion)
         
         return random.choice(acciones_validas)
+    
+class NueveCuartosCiego(NueveCuartos):
+    """
+    Igual que NueveCuartos, pero el agente no puede ver 
+    si el cuarto está limpio o sucio
+    """
+    
+    def percepcion(self):
+        """
+        Solo regresa la posición del robot
+        """
+        robot = self.x[0]
+        return robot,  
+    
+class AgenteReactivoModeloNueveCuartosCiego(entornos_o.Agente):
+    """
+    Agente reactivo basado en modelo para entorno ciego.
+    No puede ver si los cuartos están limpios, solo su posición.
+    """
+    
+    def __init__(self):
+        """
+        Inicializa el modelo interno en el peor de los casos
+        """
+        self.modelo = [0, "sucio", "sucio", "sucio",
+                          "sucio", "sucio", "sucio",
+                          "sucio", "sucio", "sucio"]
+        self.visitados = set()  
+    
+    def programa(self, percepcion):
+        robot, = percepcion  
+        
+        self.modelo[0] = robot
+        
+        if robot not in self.visitados:
+            self.visitados.add(robot)
+            self.modelo[robot + 1] = "limpio"
+            return "limpiar"
+        
+        if len(self.visitados) == 9:
+            return "nada"
+        
+        objetivo = None
+        for i in range(9):
+            if i not in self.visitados:
+                objetivo = i
+                break
+        
+        if objetivo is not None:
+            if objetivo > robot:
+                if robot in (2, 5):
+                    return "subir"
+                else:
+                    return "ir_Derecha"
+            
+            elif objetivo < robot:
+                if robot in (6, 3):
+                    return "bajar"
+                else:
+                    return "ir_Izquierda"
+        
+        if robot == 0:
+            return "ir_Derecha"
+        elif robot == 1:
+            return "ir_Derecha"
+        elif robot == 2:
+            return "subir"
+        elif robot == 3:
+            return "ir_Derecha"
+        elif robot == 4:
+            return "ir_Derecha"
+        elif robot == 5:
+            return "subir"
+        elif robot == 6:
+            return "ir_Derecha"
+        elif robot == 7:
+            return "ir_Derecha"
+        elif robot == 8:
+            return "nada"
+        
+        return "nada"
 
 def test():
     x0 = [0, "sucio", "sucio", "sucio", 
@@ -201,6 +282,11 @@ def test():
     print("Prueba del entorno con un agente reactivo con modelo")
     entornos_o.simulador(NueveCuartos(x0),
                          AgenteReactivoModeloNueveCuartos(),
+                         200)
+    
+    print("Prueba del entorno ciego con un agente reactivo con modelo")
+    entornos_o.simulador(NueveCuartosCiego(x0),
+                         AgenteReactivoModeloNueveCuartosCiego(),
                          200)
     
 if __name__ == "__main__":
