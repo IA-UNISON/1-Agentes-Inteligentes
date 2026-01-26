@@ -171,7 +171,6 @@ class AgenteAleatorioNueveCuartos(entornos_o.Agente):
         """
         robot, _ = percepcion
         
-        # Filtrar solo acciones legales para la posición actual
         acciones_validas = []
         
         for accion in self.acciones:
@@ -268,12 +267,135 @@ class AgenteReactivoModeloNueveCuartosCiego(entornos_o.Agente):
             return "nada"
         
         return "nada"
+    
+class NueveCuartosEstocastico(NueveCuartos):
+    """
+    Entorno estocástico donde las acciones no siempre funcionan como se espera:
+    - Limpiar: 80% limpia, 20% no hace nada
+    - Moverse: 80% se mueve correctamente, 10% se queda en su lugar, 10% acción legal aleatoria
+    """
+    
+    def transicion(self, accion):
+        if not self.accion_legal(accion):
+            raise ValueError("La acción no es legal para este estado")
+        
+        robot = self.x[0]
+        
+        if accion == "limpiar":
+            probabilidad = random.random()
+            if probabilidad < 0.8: 
+                self.x[robot + 1] = "limpio"
+            self.costo += 1
+            return
+        
+        if accion in ("ir_Derecha", "ir_Izquierda", "subir", "bajar"):
+            probabilidad = random.random()
+            
+            if probabilidad < 0.8:  
+                accion_ejecutada = accion
+            elif probabilidad < 0.9: 
+                accion_ejecutada = "nada"
+            else:  
+                acciones_legales = []
+                if robot in (2, 5):
+                    acciones_legales.append("subir")
+                if robot in (6, 3):
+                    acciones_legales.append("bajar")
+                if robot not in (2, 5, 8):
+                    acciones_legales.append("ir_Derecha")
+                if robot not in (0, 3, 6):
+                    acciones_legales.append("ir_Izquierda")
+                acciones_legales.extend(["limpiar", "nada"])
+                
+                accion_ejecutada = random.choice(acciones_legales)
+            
+            if accion_ejecutada == "ir_Derecha":
+                self.x[0] += 1
+                self.costo += 2
+            elif accion_ejecutada == "ir_Izquierda":
+                self.x[0] -= 1
+                self.costo += 2
+            elif accion_ejecutada == "subir":
+                self.x[0] += 3
+                self.costo += 3
+            elif accion_ejecutada == "bajar":
+                self.x[0] -= 3
+                self.costo += 3
+            elif accion_ejecutada == "limpiar":
+                if random.random() < 0.8:
+                    self.x[self.x[0] + 1] = "limpio"
+                self.costo += 1
+            elif accion_ejecutada == "nada":
+                if any(self.x[i] == "sucio" for i in range(1, 10)):
+                    self.costo += 1
+        
+        elif accion == "nada":
+            if any(self.x[i] == "sucio" for i in range(1, 10)):
+                self.costo += 1
+
+
+class AgenteReactivoModeloNueveCuartosEstocastico(entornos_o.Agente):
+    """
+    Agente reactivo basado en modelo para entorno estocástico.
+    Mantiene un modelo interno del estado de los cuartos.
+    """
+    
+    def __init__(self):
+        """
+        Inicializa el modelo interno asumiendo todos los cuartos sucios
+        """
+        self.modelo = [0, "sucio", "sucio", "sucio",
+                          "sucio", "sucio", "sucio",
+                          "sucio", "sucio", "sucio"]
+    
+    def programa(self, percepcion):
+        robot, situacion = percepcion
+        
+        self.modelo[0] = robot
+        self.modelo[robot + 1] = situacion
+        
+        if situacion == "sucio":
+            return "limpiar"
+        
+        objetivo = None
+        for i, estado in enumerate(self.modelo[1:]):
+            if estado == "sucio":
+                objetivo = i
+                break
+        
+        # trate de mejorar la lógica del agente reactivo modelo anterior, 
+        # calculando depende del piso en el que esta. Al final hacen lo
+        # mismo.
+        if objetivo is not None:
+            piso_robot = robot // 3  
+            piso_objetivo = objetivo // 3
+            
+            if piso_robot == piso_objetivo:
+                if objetivo > robot:
+                    return "ir_Derecha"
+                else:
+                    return "ir_Izquierda"
+            
+            elif piso_objetivo > piso_robot:
+                if robot not in (2, 5):
+                    return "ir_Derecha"
+                else:
+                    return "subir"
+            
+            else:
+                if robot not in (3, 6):
+                    return "ir_Izquierda"
+                else:
+                    return "bajar"
+
+        return "nada"
 
 def test():
     x0 = [0, "sucio", "sucio", "sucio", 
              "sucio", "sucio", "sucio", 
              "sucio", "sucio", "sucio",]
     
+    # Primer y segundo punto de la tarea
     print("Prueba del entorno con un agente aleatorio")
     entornos_o.simulador(NueveCuartos(x0),
                          AgenteAleatorioNueveCuartos(),
@@ -284,9 +406,16 @@ def test():
                          AgenteReactivoModeloNueveCuartos(),
                          200)
     
+    # Tercer punto de la tarea 
     print("Prueba del entorno ciego con un agente reactivo con modelo")
     entornos_o.simulador(NueveCuartosCiego(x0),
                          AgenteReactivoModeloNueveCuartosCiego(),
+                         200)
+    
+    # Cuarto punto de la tarea
+    print("Prueba del entorno estocastico con un agente reactivo con modelo")
+    entornos_o.simulador(NueveCuartosEstocastico(x0),
+                         AgenteReactivoModeloNueveCuartosEstocastico(),
                          200)
     
 if __name__ == "__main__":
