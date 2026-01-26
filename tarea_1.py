@@ -88,7 +88,7 @@ class AgenteAleatorio(entornos_o.Agente):
 
 class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
     """
-     Un agente reactivo simple
+     Un agente Reactivo Modelo
 
      """
 
@@ -135,9 +135,11 @@ class AgenteNueveCuartosCiego(entornos_o.Agente):
 
 
 class AgenteNueveCuartosEstocastico(entornos_o.Agente):
+
     """
      Un agente estocastico que toma algunas decisiones basadas en probabilidades
      """
+
     def __init__(self):
         self.memoria = {k: 'desconocido' for k in 'ABCDEFGHI'}
 
@@ -201,7 +203,7 @@ def test():
     entornos_o.simulador(NueveCuartos(prueba_cuarto_sucio), AgenteReactivoModeloNueveCuartos(), 200)
 
     """
-    Comparacion entre un agente Reactivo y un Agente Aleatorio
+    Comparacion entre un agente Reactivo Modelo y un Agente Aleatorio
     Para cada agente se corrio la simulacion con 200 pasos
 
     Lo que se noto en la comparacion entre los agentes es que el agente reactivo cumplio con limpiar todos los cuartos 
@@ -235,8 +237,8 @@ def test():
     Comparacion entre un agente estocastico y un agente aleatorio
     Para cada agente se corrio la simulacion con 200 pasos
     
-    El agente estocastico si logro limpiar todos los cuartos con un costo de 33 , en un momento decidio no hacer nada en momentos que solo 
-    debia de ir a la derecha o limpiar 2 veces por como se configuraron sus acciones con probabilidades , pero en general logro limpiar todos los cuartos
+    El agente estocastico si logro limpiar todos los cuartos con un costo de 30 , acercandose al reactivo modelo pero haciendo acciones 2 veces por
+    como tiene configurada su probabilidad, pero en general logro limpiar todos los cuartos
     El agente aleatorio no logro limpiar todos los cuartos y seguia haciendo cosas sin sentido
     """
 
@@ -255,10 +257,10 @@ def test():
 
     print("Prueba del entorno con un Agente basado en modelo")
     entornos_o.simulador(NueveCuartos(prueba_cuarto_limpio),
-                         AgenteNueveCuartosCiego(),50)
+                         AgenteNueveCuartosCiego(),30)
     print("Prueba del entorno con un Agente basado en modelo")
     entornos_o.simulador(NueveCuartos(prueba_cuarto_limpio),
-                         AgenteReactivoModeloNueveCuartos(),50)
+                         AgenteReactivoModeloNueveCuartos(),30)
 
 
 if __name__ == "__main__":
