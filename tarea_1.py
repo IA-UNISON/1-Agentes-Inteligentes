@@ -92,6 +92,39 @@ class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
             'ir_Izquierda' if robot in [9, 8] else
             'bajar' if robot == 7 else 
             'nada')
+    
+class NueveCuartosCiego(NueveCuartos):
+    def percepcion(self):
+        return self.x[0]
+    
+class AgenteReactivoModeloNueveCuartosCiego(entornos_o.Agente):
+    def __init__(self):
+        self.modelo = [1, "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio"]
+
+    def programa(self, percepcion):
+        robot = percepcion
+
+        # Se actualiza la ubicacion
+        self.modelo[0] = robot
+
+        situacion = self.modelo[robot]
+        s = self.modelo
+
+        accion = ('nada' if not 'sucio' in s[1:] else
+                  'limpiar' if situacion == 'sucio' else
+                  'ir_Derecha' if robot in [1, 2] else
+                  'subir' if robot == 3 else
+                  ('ir_Izquierda' if s[4] == 'sucio' or s[5] == 'sucio' else 'subir') if robot == 6 else
+                  ('ir_Izquierda' if s[4] == 'sucio' else 'ir_Derecha') if robot == 5 else
+                  'ir_Derecha' if robot == 4 else 
+                  'ir_Izquierda' if robot in [9, 8] else
+                  'bajar' if robot == 7 else 
+                  'nada')
+        
+        if accion == 'limpiar':
+            self.modelo[robot] = 'limpio'
+        
+        return accion
 
 def test():
     x0 = [1, "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio"]
@@ -106,6 +139,10 @@ def test():
                          AgenteReactivoModeloNueveCuartos(),
                          200)
 
+    print("Prueba del entorno Ciego con un agente reactivo con modelo")
+    entornos_o.simulador(NueveCuartosCiego(x0),
+                         AgenteReactivoModeloNueveCuartosCiego(),
+                         200)
 
 if __name__ == "__main__":
     test()
