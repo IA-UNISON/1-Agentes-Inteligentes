@@ -10,6 +10,7 @@ Revisa el archivo README.md con las instrucciones de la tarea.
 __author__ = 'Diego Gallegos Hernandez'
 
 import entornos_o
+import random
 
 # Requiere el modulo entornos_f.py o entornos_o.py
 # Usa el modulo doscuartos_f.py para reutilizar código
@@ -96,3 +97,60 @@ class NueveCuartos(entornos_o.Entorno):
         robot = self.x[0]
         estado = self.x[robot + 1]
         return robot, estado
+    
+class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
+    """
+    Un agente reactivo basado en modelo. Conserva memoria de su entorno.
+    """
+    
+    def __init__(self):
+        """
+        Inicializa el modelo interno en el peor de los casos
+        """
+        self.modelo = [0, "sucio", "sucio", "sucio", 
+                          "sucio", "sucio", "sucio", 
+                          "sucio", "sucio", "sucio",]
+        
+    def programa(self, percepcion):
+        robot, situacion = percepcion 
+    
+        self.modelo[0] = robot
+        self.modelo[robot + 1] = situacion
+    
+        if situacion == "sucio":
+            return "limpiar"
+    
+        objetivo = None
+        for i, estado in enumerate(self.modelo[1:]):
+            if estado == "sucio":
+                objetivo = i
+                break
+
+        if objetivo is not None and objetivo > robot:
+            if robot in (2, 5):
+                return "subir"
+            else: 
+                return "ir_Derecha"
+
+        if objetivo is not None and objetivo < robot:
+            if robot in (6, 3):
+                return "bajar"
+            else:
+                return "ir_Izquierda"
+        
+        if all(cuarto == "limpio" for cuarto in self.modelo[1:]):
+            return "nada"
+    
+        # exploración
+        if robot in (2, 5):
+            return random.choice(["ir_Izquierda", "subir"])
+        elif robot in (6, 3):
+            return random.choice(["ir_Derecha", "bajar"])
+        elif robot in (1, 4, 7): 
+            return random.choice(["ir_Derecha", "ir_Izquierda"])
+        elif robot == 0:
+            return "ir_Derecha"
+        elif robot == 8:
+            return "ir_Izquierda"
+
+        return "nada"
