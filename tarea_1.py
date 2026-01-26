@@ -4,7 +4,7 @@ import random
 
 
 class NueveCuartos(entornos_o.Entorno):
-    def __init__(self, x0 = ["A"] + ["limpio"] * 9):
+    def __init__(self, x0 = ["A"] + ["sucio"] * 9):
         self.x = x0[:]
         self.costo = 0
 
