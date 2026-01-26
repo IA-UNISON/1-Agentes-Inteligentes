@@ -42,14 +42,15 @@ class NueveCuartos(entornos_o.Entorno):
     def accion_legal(self, accion):
         robot = self.x[0]
 
-        if accion == "ir_Derecha":
-            return robot not in [2,5,8]
-        if accion == "ir_Izquierda":
-            return robot not in [0,3,6]
         if accion == "subir":
             return robot == 2 or robot == 5
         if accion == "bajar":
             return robot == 6 or robot == 3
+        if accion == "ir_Derecha":
+            return robot not in [2,5,8]
+        if accion == "ir_Izquierda":
+            return robot not in [0,3,6]
+
 
         return True #Por si llega a ser la opción "limpiar" o "nada", esto es válido
 
@@ -78,10 +79,10 @@ class NueveCuartos(entornos_o.Entorno):
             return
         if accion == "limpiar":
             self.x[robot+1] = "limpio"
-        elif accion == "ir_Izquierda":
-            self.x[0] -= 1
         elif accion == "ir_Derecha":
             self.x[0] += 1
+        elif accion == "ir_Izquierda":
+            self.x[0] -= 1
         elif accion == "subir":
             self.x[0] += 3
         elif accion == "bajar":
@@ -178,41 +179,59 @@ class AgenteReactivoModeloNueveCuartosCiego(AgenteReactivoModeloNueveCuartos):
 
         return "nada"
 
-class NueveCuartosEstocastico(NueveCuartos):
-        def transicion(self, accion):
-            robot = self.x[0]
-            costopaccion = 0
-            if accion == "limpiar":
-                costopaccion = 1
-            elif accion in ["ir_Derecha", "ir_Izquierda"]:
-                costopaccion = 2
-            elif accion in ["subir", "bajar"]:
-                costopaccion = 3
 
-            self.costo += costopaccion
-            if not self.accion_legal(accion):
+class NueveCuartosEstocastico(NueveCuartos):
+    def transicion(self, accion):
+        robot = self.x[0]
+        costopaccion = 0
+
+        # Asignar costos primero
+        if accion == "limpiar":
+            costopaccion = 1
+        elif accion in ["ir_Derecha", "ir_Izquierda"]:
+            costopaccion = 2
+        elif accion in ["subir", "bajar"]:
+            costopaccion = 3
+
+        self.costo += costopaccion
+
+        # Si la acción no es legal desde el principio, terminamos (a menos que sea limpiar/nada)
+        if not self.accion_legal(accion) and accion != "limpiar":
+            return
+
+        rand = random.random()
+
+        if accion == "limpiar":
+            # 80% de probabilidad de limpiar correctamente
+            if rand <= 0.8:
+                self.x[robot + 1] = "limpio"
+        else:
+            # Lógica para movimiento
+            accion_a_ejecutar = None
+
+            if rand <= 0.8:
+                # 80%: Hace lo que se le pidió
+                accion_a_ejecutar = accion
+            elif rand <= 0.9:
+                # 10%: No hace nada
                 return
-            rand = random.random()
-            if accion == "limpiar":
-                if rand <= 0.8:
-                    self.x[robot+1] = "limpio"
             else:
-                if rand <= 0.8:
-                    res = accion
-                elif rand <= 0.9:
-                    return
-                else:
-                    movs = ["subir", "bajar", "ir_Derecha", "ir_Izquierda"]
-                    prob = [x for x in movs if self.accion_legal(x)]
-                    res = random.choice(prob)
-                    if res == "ir_Izquierda":
-                        self.x[0] -= 1
-                    elif res == "ir_Derecha":
-                        self.x[0] += 1
-                    elif res == "subir":
-                        self.x[0] += 3
-                    elif res == "bajar":
-                        self.x[0] -= 3
+                # 10%: Movimiento aleatorio legal
+                movs = ["ir_Derecha", "ir_Izquierda", "subir", "bajar"]
+                # Filtramos solo las acciones legales desde la posición actual
+                prob = [x for x in movs if self.accion_legal(x)]
+                if prob:
+                    accion_a_ejecutar = choice(prob)
+
+            # AHORA ejecutamos la acción decidida (fuera de los ifs de probabilidad)
+            if accion_a_ejecutar == "ir_Derecha":
+                self.x[0] += 1
+            elif accion_a_ejecutar == "ir_Izquierda":
+                self.x[0] -= 1
+            elif accion_a_ejecutar == "subir":
+                self.x[0] += 3
+            elif accion_a_ejecutar == "bajar":
+                self.x[0] -= 3
 
 class AgenteReactivoModeloEstocastico(AgenteReactivoModeloNueveCuartos):
     pass
