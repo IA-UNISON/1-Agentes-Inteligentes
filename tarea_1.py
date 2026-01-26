@@ -80,27 +80,105 @@ class AgenteReactivoModeloNueveCuartos(entornos_o.Agente):
         self.modelo[0] = robot
         self.modelo[robot + 1] = situacion
 
-        if all(habitacion == 'limpio' for habitacion in self.modelo[1:]):
-            return 'nada'
-        if situacion == 'sucio':
-            return 'limpiar'
+        if all(habitacion == "limpio" for habitacion in self.modelo[1:]):
+            return "nada"
+        if situacion == "sucio":
+            return "limpiar"
 
         if robot == 0 or robot == 1:
-            return 'ir_Derecha'
+            return "ir_Derecha"
         elif robot == 2:
-            return 'subir'
+            return "subir"
         elif robot == 5:
-            return 'subir'
+            return "subir"
         elif robot == 8 or robot == 7:
-            return 'ir_Izquierda'
+            return "ir_Izquierda"
         elif robot == 6:
-            return 'bajar'
+            return "bajar"
         elif robot == 3:
-            return 'ir_Derecha'
+            return "ir_Derecha"
         elif robot == 4:
-            return 'nada'
+            return "nada"
 
-        return 'nada'
+        return "nada"
+
+class NueveCuartosCiego(NueveCuartos):
+    def percepcion(self):
+        return self.x[0]
+
+class AgenteReactivoModeloNueveCuartosCiego(AgenteReactivoModeloNueveCuartos):
+    def programa(self, percepcion):
+        robot = percepcion
+        self.modelo[0] = robot
+
+        if all(habitacion == "limpio" for habitacion in self.modelo[1:]):
+            return "nada"
+
+        hip = self.modelo[robot + 1]
+        if hip == "sucio":
+            self.modelo[robot+1] = "limpio"
+            return "limpiar"
+
+        if robot == 0 or robot == 1:
+            return "ir_Derecha"
+        elif robot == 2:
+            return "subir"
+        elif robot == 5:
+            return "subir"
+        elif robot == 8 or robot == 7:
+            return "ir_Izquierda"
+        elif robot == 6:
+            return "bajar"
+        elif robot == 3:
+            return "ir_Derecha"
+        elif robot == 4:
+            return "nada"
+
+        return "nada"
+
+class NueveCuartosEstocastico(NueveCuartos):
+        def transicion(self, accion):
+            robot = self.x[0]
+            costopaccion = 0
+            if accion == "limpiar":
+                costopaccion = 1
+            elif accion in ["ir_Derecha", "ir_Izquierda"]:
+                costopaccion = 2
+            elif accion in ["subir", "bajar"]:
+                costopaccion = 3
+
+            self.costo += costopaccion
+            if not self.accion_legal(accion):
+                return
+            rand = random.random()
+            if accion == "limpiar":
+                if rand <= 0.8:
+                    self.x[robot+1] = "limpio"
+            else:
+                if rand <= 0.8:
+                    res = accion
+                elif rand <= 0.9:
+                    return
+                else:
+                    movs = ["subir", "bajar", "ir_Derecha", "ir_Izquierda"]
+                    prob = [x for x in movs if self.accion_legal(x)]
+                    res = random.choice(prob)
+                    if res == "ir_Izquierda":
+                        self.x[0] -= 1
+                    elif res == "ir_Derecha":
+                        self.x[0] += 1
+                    elif res == "subir":
+                        self.x[0] += 3
+                    elif res == "bajar":
+                        self.x[0] -= 3
+
+class AgenteReactivoModeloEstocastico(AgenteReactivoModeloNueveCuartos):
+    pass
+
+
+
+
+
 
 
 
