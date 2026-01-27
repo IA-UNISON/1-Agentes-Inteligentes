@@ -308,3 +308,12 @@ def test():
 if __name__ == "__main__":
     test()
 
+"""
+Observaciones:
+El agente aleatorio realiza muchas acciones innecesarias, como limpiar cuartos ya limpios o ejecutar la acción “nada”, lo que provoca un mayor número de pasos y un costo más alto, ya que no cuenta con memoria ni estrategia.
+En cambio, el agente reactivo basado en modelo utiliza memoria para recordar los cuartos visitados y su estado, lo que le permite tomar mejores decisiones y completar la tarea con menor costo y en menos tiempo.
+Cuando el agente es ciego , resulta necesario una estrategia de recorrido, pues al no poder distinguir si un cuarto está sucio o limpio, puede quedar atrapado repitiendo acciones sin avanzar de manera efectiva.
+
+"""
+
+
