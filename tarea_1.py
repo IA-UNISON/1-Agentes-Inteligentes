@@ -11,6 +11,12 @@ Revisa el archivo README.md con las instrucciones de la tarea.
 # Usa el modulo doscuartos_f.py para reutilizar código
 # Agrega los modulos que requieras de python
 
+
+
+# Por situaciones personales no logre dedicarle el tiempo que requeria la actividad
+
+
+
 import entornos_o
 from random import choice
 
