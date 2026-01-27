@@ -82,7 +82,7 @@ class NueveCuartos(entornos_f.Entorno):
                  break
          
          #Costo
-        c_local = (0 if (todolimpio and accion == "nada") else
+         c_local = (0 if (todolimpio and accion == "nada") else
                     3 if accion in ("subir", "bajar") else 
                     2 if accion in ("ir_derecha", "ir_izquierda") else 1)
          
@@ -109,6 +109,21 @@ class NueveCuartos(entornos_f.Entorno):
          """
          robot, cuartos = estado
          return (robot, cuartos[robot])
+
+class AgenteAleatorio(entornos_f.Agente):
+    """
+    Agente que no planea, no recuerda y no intenta optimizar. Solo elige acciones al azar y su comportamiento es impredecible.
+    """
+    def __init__(self, entorno):
+        self.entorno = entorno
+        self.acciones = ("ir_derecha", "ir_izquierda", "subir", "bajar", "limpiar", "nada")
+
+    def programa(self, percepcion):
+        estado = percepcion
+
+        #Filtro las acciones: Se conservan las que son legales en el estado actual.
+        legales = [a for a in self.acciones if self.entorno.accion_legal(estado, a)]
+        return choice(legales)
 
 class AgenteReactivoModelo(entornos_f.Agente):
      """
