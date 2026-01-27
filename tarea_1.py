@@ -52,7 +52,10 @@ class NueveCuartos(entornos_f.Entorno):
         nada: La accion no hace ningún cambio en el entorno.
 
         """
-        robot, _ = estado
+        if isinstance(estado, str):
+            robot = estado
+        else:
+            robot = estado[0]
 
         if accion == "ir_derecha":
             return robot in self.derecha
@@ -179,6 +182,85 @@ class AgenteReactivoModelo(entornos_f.Agente):
         if robot in NueveCuartos.bajar:
             return "bajar"
         return "nada"
+
+class NueveCuartosCiego(NueveCuartos):
+    """
+    Este agente solo sabe la ubicacion en la que está, pero no sabe si el cuarto está limpio o sucio.
+    """
+    def percepcion(self, estado):
+        robot, _ = estado
+        return robot
+    
+class AgenteReactivoNueveCuartosCiego(AgenteReactivoModelo):
+    """
+    Este agente no puede ver si un cuarto esta sucio o limpio, por lo que recorre todos los cuartos y los limpia.
+    """
+    def __init__(self):
+        self.cuartos = ("A","B","C","D","E","F","G","H","I")
+        self.modelo =  ["?", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio", "sucio"]
+    
+    def programa(self, percepcion):
+        robot = percepcion
+        self.modelo[0] = robot
+
+        idx = self.cuartos.index(robot) + 1
+
+        if all(self.modelo[i] == "limpio" for i in range(1,10)):
+            return "nada"
+        
+        if self.modelo[idx] == "sucio":
+            self.modelo[idx] = "limpio"
+            return "limpiar"
+        
+        if robot in ("A", "B", "D", "E", "G", "H"):
+            return "ir_derecha"
+        if robot in ("C", "F"):
+            return "subir"
+        if robot in ("I"):
+            return "ir_izquierda"
+        if robot in ("G", "D"):
+            return "bajar"
+
+        return "nada"
+
+class AgenteAleatorioNueveCuartos(entornos_f.Agente):
+    """
+    Un agente que solo regresa una acción al azar entre las acciones legales
+    """
+    def __init__(self):
+        self.acciones = ["ir_derecha", "ir_izquierda", "subir", "bajar", "limpiar", "nada"]
+
+    def programa(self, percepcion):
+        return choice(self.acciones)
+
+            
+def prueba_aleatorio_ciego():
+    env = NueveCuartosCiego()
+    estado_inicial = ("A", {q: "sucio" for q in env.cuartos})
+
+    agente = AgenteAleatorio(env)
+    historial = entornos_f.simulador(env, agente, estado_inicial, T=200)
+
+    print("\n>>> Agente aleatorio (ciego) <<<")
+    imprimir_tabla(historial, estado_inicial)
+
+def prueba_agente_modelo():
+    env = NueveCuartos()
+    estado_inicial = ("A", {q: "sucio" for q in env.cuartos})
+
+    agente = AgenteReactivoModelo()
+    historial = entornos_f.simulador(env, agente, estado_inicial, T=200)
+
+    imprimir_tabla(historial, estado_inicial)
+
+def prueba_modelo_ciego():
+    env = NueveCuartosCiego()
+    estado_inicial = ("A", {q: "sucio" for q in env.cuartos})
+
+    agente = AgenteReactivoNueveCuartosCiego()
+    historial = entornos_f.simulador(env, agente, estado_inicial, T=200)
+	
+    imprimir_tabla(historial, estado_inicial)
             
 def prueba_agente_aleatorio():
     env = NueveCuartos()
@@ -210,13 +292,18 @@ def imprimir_tabla(historial, estado_inicial):
 
         print(f"{i:>4} | {accion:^12} | {robot:^5} | {estado_actual:^14} | {costo:>5}")
 
-
 def test():
     print("\n>>> Agente aleatorio <<<")
     prueba_agente_aleatorio()
 
     print("\n>>> Agente reactivo modelo <<<")
     prueba_agente_modelo()
+
+	print("\n>>> Agente aleatorio (ciego) <<<")
+    prueba_aleatorio_ciego()
+
+    print("\n>>> Agente reactivo modelo (ciego) <<<")
+    prueba_modelo_ciego()
 
 if __name__ == "__main__":
     test()
