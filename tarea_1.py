@@ -11,9 +11,10 @@ __author__ = 'Melina González Méndez'
 
 import entornos_f
 import entornos_o
+from random import choice
 
 #NueveCuartos
-class NueveCuartos(entornos_o.Entorno):
+class NueveCuartos(entornos_f.Entorno):
      """
      Clase para un entorno de nueve cuartos (3 pisos x 3 cuartos). 
      
@@ -26,10 +27,11 @@ class NueveCuartos(entornos_o.Entorno):
 
      Acciones: ["ir_derecha", "ir_izquierda", "subir", "bajar", "limpiar", "nada"]
 
-     Costos: Cada accion tiene un costo asociado.
+    Costos: Cada accion tiene un costo asociado.
              0 si todos los cuartos están limpios y la acción es nada.
              3 si la acción es subir o bajar.
-             1 para cualquier otra acción.
+             2 si la accion es ir a la derecha o ir a la izquerda.
+             1 si la accion es limpiar
              Si la accion no es legal, el estado no cambia y el costo es 0.
      """
      #Reglas:
@@ -72,7 +74,7 @@ class NueveCuartos(entornos_o.Entorno):
 
          cuartos_nuevo = dict(cuartos)
 
-         #Comprobar si estan limpio todos los cuartos
+         #Comprobar si estan limpios todos los cuartos
          todolimpio = True
          for q in self.cuartos:
              if cuartos_nuevo[q] != "limpio":
@@ -80,8 +82,9 @@ class NueveCuartos(entornos_o.Entorno):
                  break
          
          #Costo
-         c_local = (0 if (todolimpio and accion == "nada") else
-                    3 if accion in ("subir", "bajar") else 1)
+        c_local = (0 if (todolimpio and accion == "nada") else
+                    3 if accion in ("subir", "bajar") else 
+                    2 if accion in ("ir_derecha", "ir_izquierda") else 1)
          
          if not self.accion_legal(estado, accion):
              return (robot, cuartos_nuevo), 0
@@ -106,4 +109,100 @@ class NueveCuartos(entornos_o.Entorno):
          """
          robot, cuartos = estado
          return (robot, cuartos[robot])
+
+class AgenteReactivoModelo(entornos_f.Agente):
+     """
+     Agente que tiene memoria, recuerda que cuartos limpió y toma decisiones inteligentes.
+     Primero se inicializa en el peor de los casos (todos los cuartos sucios) y se guarda la posición actual del robot.
+     """
+     def __init__(self):
+        self.modelo = {q: "sucio" for q in ("A","B","C","D","E","F","G","H","I")}
+        self.robot = "A"
+
+     def programa(self, percepcion):
+        robot, situacion = percepcion
+        self.robot = robot
+        self.modelo[robot] = situacion
+
+        #Si el cuarto esta sucio, entonces limpio
+        if situacion == "sucio":
+            self.modelo[robot] = "limpio"
+            return "limpiar"
+
+        #Todos los cuartos estan limpios, entonces no hago nada
+        if all(self.modelo[q] == "limpio" for q in self.modelo):
+            return "nada"
+        
+        #Explorar cuartos vecinos (ir_derecha, ir_izquerda, subir, bajar)
+        if robot in NueveCuartos.derecha:
+            sig = NueveCuartos.derecha[robot]
+            if self.modelo[sig] == "sucio":
+                return "ir_derecha"
+        
+        if robot in NueveCuartos.izquierda:
+            sig = NueveCuartos.izquierda[robot]
+            if self.modelo[sig] == "sucio":
+                return "ir_izquierda"
+            
+        if robot in NueveCuartos.subir:
+            sig = NueveCuartos.subir[robot]
+            if self.modelo[sig] == "sucio":
+                return "subir"
+            
+        if robot in NueveCuartos.bajar:
+            sig = NueveCuartos.bajar[robot]
+            if self.modelo[sig] == "sucio":
+                return "bajar"
+            
+        #Para evitar que el agente se quede estancado. Explorar el entorno:
+        if robot in NueveCuartos.derecha:
+            return "ir_derecha"
+        if robot in NueveCuartos.izquierda:
+            return "ir_izquierda"
+        if robot in NueveCuartos.subir:
+            return "subir"
+        if robot in NueveCuartos.bajar:
+            return "bajar"
+        return "nada"
+            
+def prueba_agente_aleatorio():
+    env = NueveCuartos()
+    estado_inicial = ("A", {q: "sucio" for q in env.cuartos})
+
+    agente = AgenteAleatorio(env)
+    historial = entornos_f.simulador(env, agente, estado_inicial, T=200)
+
+    imprimir_tabla(historial, estado_inicial)
+
+def prueba_agente_modelo():
+    env = NueveCuartos()
+    estado_inicial = ("A", {q: "sucio" for q in env.cuartos})
+
+    agente = AgenteReactivoModelo()
+    historial = entornos_f.simulador(env, agente, estado_inicial, T=200)
+
+    imprimir_tabla(historial, estado_inicial)
+    
+def imprimir_tabla(historial, estado_inicial):
+    print("\nSimulación iniciando en:", estado_inicial)
+    print()
+    print(f"{'Paso':>4} | {'Acción':^12} | {'Robot':^5} | {'Estado cuarto':^14} | {'Costo':>5}")
+    print("-" * 55)
+
+    for i, (accion, estado, costo) in enumerate(historial):
+        robot, cuartos = estado
+        estado_actual = cuartos[robot]
+
+        print(f"{i:>4} | {accion:^12} | {robot:^5} | {estado_actual:^14} | {costo:>5}")
+
+
+def test():
+    print("\n>>> Agente aleatorio <<<")
+    prueba_agente_aleatorio()
+
+    print("\n>>> Agente reactivo modelo <<<")
+    prueba_agente_modelo()
+
+if __name__ == "__main__":
+    test()
 
