@@ -16,7 +16,16 @@ from random import choice
 
 class NueveCuartos(entornos_o.Entorno):
     def __init__(self):
-        self.x = [
+       
+       self.x = [
+            0,  # piso inicial
+            0,  # cuarto inicial
+            [ ["sucio" for _ in range(3)] for _ in range(3) ]  # matriz 3x3 independiente
+        ]
+       
+       self.costo = 0
+       
+    """self.x = [
             0,                                  # piso inicial
             0,                                  # cuarto inicial
             [
@@ -25,12 +34,11 @@ class NueveCuartos(entornos_o.Entorno):
                 ["sucio", "sucio", "sucio"]     # piso 2
             ]
         ]
-        """
         self.x[0] -> piso actual (0,1,2)
         self.x[1] -> cuarto actual (0,1,2)
         self.x[2] -> matriz 3x3 con estado de cada cuarto ("sucio"/"limpio")
         """
-        self.costo = 0
+        
 
     def accion_legal(self, accion):
         piso, cuarto, _ = self.x
@@ -52,9 +60,36 @@ class NueveCuartos(entornos_o.Entorno):
     
     def transicion(self, accion):
         if not self.accion_legal(accion):
+            print(f"Acción ilegal: {accion}")
             return
         
-        piso, cuarto, cuartos = self.x
+        piso = self.x[0]
+        cuarto = self.x[1]
+
+        costos = {"limpiar": 1,"ir_Derecha": 2,"ir_Izquierda": 2,"subir": 3,"bajar": 3,"nada": 0}
+        self.costo += costos.get(accion, 1)
+
+        # Ejecutar acción
+        if accion == "limpiar":
+            self.x[2][piso][cuarto] = "limpio"
+        elif accion == "ir_Derecha":
+            self.x[1] += 1
+        elif accion == "ir_Izquierda":
+            self.x[1] -= 1
+        elif accion == "subir":
+            self.x[0] += 1
+        elif accion == "bajar":
+            self.x[0] -= 1
+        
+        print(f"[DEBUG] Acción: {accion}, Piso: {self.x[0]}, Cuarto: {self.x[1]}, Estado: {self.x[2]}")
+
+    """def transicion(self, accion):
+        if not self.accion_legal(accion):
+            return
+        
+        piso = self.x[0]
+        cuarto = self.x[1]
+        # piso, cuarto, cuartos = self.x
 
         costos = {
             "limpiar": 1,
@@ -65,10 +100,11 @@ class NueveCuartos(entornos_o.Entorno):
             "nada": 0
             }
         self.costo += costos.get(accion, 1)  # 1 por defecto
+        
 
         # Ejecutar acción
         if accion == "limpiar":
-            cuartos[piso][cuarto] = "limpio"
+            self.x[2][piso][cuarto] = "limpio"
         elif accion == "ir_Derecha":
             self.x[1] += 1
         elif accion == "ir_Izquierda":
@@ -77,11 +113,14 @@ class NueveCuartos(entornos_o.Entorno):
             self.x[0] += 1
         elif accion == "bajar":
             self.x[0] -= 1
-        # nada -> no hace nada
+        # 'nada' no hace nada
+        """
 
-        def percepcion(self):
-            piso, cuarto, cuartos = self.x
-            return (piso, cuarto), cuartos[piso][cuarto]
+    def percepcion(self):
+        piso = self.x[0]
+        cuarto = self.x[1]
+        estado = self.x[2][piso][cuarto]  # el estado del cuarto actual
+        return (piso, cuarto), estado
         
 
 class AgenteAleatorio(entornos_o.Agente):
@@ -122,15 +161,6 @@ class AgenteReactivoNueveCuartos(entornos_o.Agente):
 
 
 
-
-
-
-
-
-
-
-
-
 def test():
     """
     Prueba del entorno NueveCuartos y los agentes
@@ -143,14 +173,14 @@ def test():
                          agente_aleatorio,
                          pasos=200)
     
-    """print("Prueba del entorno con un agente reactivo simple")
+    print("Prueba del entorno con un agente reactivo simple")
     agente_reactivo = AgenteReactivoNueveCuartos()
     entorno2 = NueveCuartos()
     entornos_o.simulador(entorno2,
                          agente_reactivo,
                          pasos=200)
 
-    print("Prueba del entorno con un agente reactivo con modelo")
+    """print("Prueba del entorno con un agente reactivo con modelo")
     entornos_o.simulador(DosCuartos(x0), 
                          AgenteReactivoModeloDosCuartos(), 
                          100)
